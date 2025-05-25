@@ -12,29 +12,30 @@ import { Separator } from '@/components/ui/separator'
 import { acceptInvite } from '@/http/accept-invite'
 import { getInvite } from '@/http/get-invite'
 
+dayjs.extend(relativeTime)
+
 interface InvitePageProps {
   params: {
     id: string
   }
 }
 
-dayjs.extend(relativeTime)
-
 export default async function InvitePage({ params }: InvitePageProps) {
   const inviteId = params.id
 
   const { invite } = await getInvite(inviteId)
   const isUserAuthenticated = await isAuthenticated()
+
   let currentUserEmail = null
 
   if (isUserAuthenticated) {
     const { user } = await auth()
+
     currentUserEmail = user.email
   }
 
-  const userIsAuthenticatedWithSameEmailFromInvite = isUserAuthenticated
-    ? currentUserEmail === invite.email
-    : false
+  const userIsAuthenticatedWithSameEmailFromInvite =
+    currentUserEmail === invite.email
 
   async function signInFromInvite() {
     'use server'
@@ -48,7 +49,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
   async function acceptInviteAction() {
     'use server'
 
-    await acceptInvite(invite.id)
+    await acceptInvite(inviteId)
 
     redirect('/')
   }
@@ -76,7 +77,9 @@ export default async function InvitePage({ params }: InvitePageProps) {
             <span className="text-xs">{dayjs(invite.createdAt).fromNow()}</span>
           </p>
         </div>
+
         <Separator />
+
         {!isUserAuthenticated && (
           <form action={signInFromInvite}>
             <Button type="submit" variant="secondary" className="w-full">
@@ -106,7 +109,9 @@ export default async function InvitePage({ params }: InvitePageProps) {
               <span className="text-foreground font-medium">
                 {currentUserEmail}
               </span>
+              .
             </p>
+
             <div className="space-y-2">
               <Button className="w-full" variant="secondary" asChild>
                 <a href="/api/auth/sign-out">
